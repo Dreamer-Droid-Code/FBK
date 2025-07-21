@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Board Kitchen</title>
+    <!-- Tailwind CSS CDN for easy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f8f8; /* Light background */
+        }
+        .product-card {
+            transition: transform 0.2s ease-in-out;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .btn-primary {
+            background-color: #ef4444; /* Red color for primary actions */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .btn-primary:hover {
+            background-color: #dc2626; /* Darker red on hover */
+        }
+        .btn-secondary {
+            background-color: #6b7280; /* Gray for secondary actions */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563; /* Darker gray on hover */
+        }
+        /* Custom scrollbar for cart */
+        .cart-items-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .cart-items-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .cart-items-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .cart-items-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        /* Modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            max-width: 90%;
+            width: 400px;
+            text-align: center;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header Section -->
+    <header class="bg-white shadow-md py-4">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-red-600">Food Board Kitchen</h1>
+            <div class="relative">
+                <button id="cartButton" class="bg-gray-200 p-3 rounded-full hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400">
+                    <!-- Shopping Cart Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span id="cartItemCount" class="absolute top-0 right-0 -mt-1 -mr-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow container mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Product Display Section -->
+        <section class="lg:col-span-2">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Our Delicious Menu</h2>
+            <div id="productContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Product cards will be loaded here by JavaScript -->
+            </div>
+        </section>
+
+        <!-- Shopping Cart and Checkout Section -->
+        <aside class="lg:col-span-1 bg-white p-6 rounded-lg shadow-lg h-fit sticky top-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Your Cart</h2>
+            <div id="cartItemsContainer" class="cart-items-container max-h-96 overflow-y-auto mb-4">
+                <!-- Cart items will be loaded here by JavaScript -->
+                <p id="emptyCartMessage" class="text-gray-500 text-center py-4">Your cart is empty.</p>
+            </div>
+
+            <div class="flex justify-between items-center border-t border-gray-200 pt-4 mt-4">
+                <span class="text-xl font-semibold text-gray-800">Total:</span>
+                <span id="cartTotal" class="text-xl font-bold text-red-600">$0.00</span>
+            </div>
+
+            <div class="mt-6">
+                <h3 class="text-lg font-medium text-gray-700 mb-3">Delivery Option:</h3>
+                <div class="flex gap-4 mb-6">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="deliveryOption" value="delivery" checked class="form-radio text-red-600 h-5 w-5">
+                        <span class="ml-2 text-gray-700">Delivery</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="deliveryOption" value="pickup" class="form-radio text-red-600 h-5 w-5">
+                        <span class="ml-2 text-gray-700">Pickup</span>
+                    </label>
+                </div>
+
+                <button id="placeOrderButton" class="btn-primary w-full py-3 text-lg">Place Order</button>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- Order Confirmation Modal -->
+    <div id="orderConfirmationModal" class="modal">
+        <div class="modal-content">
+<div class="mt-8 pt-6 border-t border-gray-200">
+                <h4 class="text-xl font-semibold text-gray-800 mb-4">Payment & Confirmation:</h4>
+
+                <p class="text-gray-700 mb-2">Scan to Pay via UPI / GPay:</p>
+                <img id="upiQrCode" src="https://photos.app.goo.gl/NP13CdgA9rNBEg6K8" alt="UPI QR Code" class="w-48 h-48 mx-auto rounded-lg shadow-md mb-4 border border-gray-300">
+                <p class="text-gray-700 font-semibold mb-6">UPI ID: <span id="displayUpiId">mnoushir5997@okicici</span></p>
+
+                <p class="text-gray-700 mb-3">Confirm your order and get updates on WhatsApp:</p>
+                <a id="whatsappOrderLink" href="#" target="_blank" class="btn-primary w-full py-3 text-lg flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.557-3.844-1.557-5.943 0-6.502 5.297-11.799 11.8-11.799s11.8 5.297 11.8 11.799c0 6.502-5.297 11.799-11.8 11.799-1.996 0-3.992-.516-5.795-1.557l-6.163 1.687zm6.557-6.602c.433.366.953.606 1.493.738l-.004.001c.54.133 1.107.199 1.674.199.646 0 1.291-.07 1.936-.219.006-.002.01-.004.015-.006.645-.149 1.272-.379 1.879-.686.002-.001.004-.002.006-.004.607-.307 1.18-.679 1.705-1.111.002-.002.004-.004.006-.006.525-.432 1.006-.921 1.446-1.455.002-.002.004-.004.006-.006.44-.534.836-1.109 1.189-1.722.002-.004.004-.007.006-.01.353-.613.654-1.282.898-1.979.002-.004.004-.007.006-.011.244-.697.436-1.423.579-2.176.002-.004.004-.007.006-.011.143-.753.226-1.528.226-2.31c0-3.314-2.686-6-6-6-1.432 0-2.863.504-4.041 1.488-.002.002-.004.004-.006.006-1.178.984-2.133 2.298-2.846 3.791-.002.004-.004.007-.006.011-.713 1.493-1.113 3.125-1.113 4.81c0 3.313 2.686 6 6 6z"/></svg>
+                    Send Order on WhatsApp
+                </a>
+            </div>
+            <span class="close-button" id="closeModalButton">&times;</span>
+            <h3 class="text-2xl font-bold text-green-600 mb-4">Order Placed! &#127881;</h3>
+            <p class="text-gray-700 mb-6">Thank you for your order from Food Board Kitchen!</p>
+            <p class="text-gray-600 text-sm">
+                We've received your order and will prepare it shortly.
+                <br>
+                <span class="font-semibold">Important:</span> For a real website, this is where we would send you to a payment page and then connect to Google Sheets and WhatsApp. Since this is a free demo, you'll need to manually manage orders for now.
+            </p>
+            <button id="modalOkButton" class="btn-primary mt-6">OK</button>
+        </div>
+    </div>
+
+    <script>
+        // IMPORTANT: REPLACE 'YOUR_APPS_SCRIPT_PRODUCT_WEB_APP_URL' with the actual URL from your Apps Script deployment for product data.
+        // This URL is obtained when you deploy the doGet function as a web app.
+        const PRODUCT_DATA_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyfe13JnupSXANTzMF8Mij8EE4OQal9IGHn6FvN8PihXqFyafAjRrYexWj7utH-6bBrKA/exec';
+        
+        // IMPORTANT: REPLACE 'YOUR_APPS_SCRIPT_WEB_APP_URL' with the actual URL from your Apps Script deployment for order receiving.
+        // This URL is obtained when you deploy the doPost function as a web app.
+        const ORDER_RECEIVER_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzLrS1Dn78QcEgRenpC3pm6KHsKdKHrLU4ANOJd6o4R91F6Al2Knel2ZIEbRLTLEcXzNw/exec';
+
+        // This array will hold the items currently in the customer's cart
+        let cart = [];
+        // This will store the products fetched from Google Sheet, so we can access their full details
+        let fetchedProducts = [];
+
+        // Get references to HTML elements
+        const productContainer = document.getElementById('productContainer');
+        const cartItemsContainer = document.getElementById('cartItemsContainer');
+        const cartTotalSpan = document.getElementById('cartTotal');
+        const cartItemCountSpan = document.getElementById('cartItemCount');
+        const emptyCartMessage = document.getElementById('emptyCartMessage');
+        const placeOrderButton = document.getElementById('placeOrderButton');
+        const orderConfirmationModal = document.getElementById('orderConfirmationModal');
+        const closeModalButton = document.getElementById('closeModalButton');
+        const modalOkButton = document.getElementById('modalOkButton');
+        const cartButton = document.getElementById('cartButton');
+
+        // Function to display all products on the page
+        async function displayProducts() {
+            productContainer.innerHTML = '<p class="text-center text-gray-500 col-span-full">Loading delicious menu...</p>';
+
+            // Check if the placeholder URL is still present
+            if (PRODUCT_DATA_WEB_APP_URL.includes('YOUR_APPS_SCRIPT_PRODUCT_WEB_APP_URL')) {
+                console.error("Configuration Error: Please replace 'YOUR_APPS_SCRIPT_PRODUCT_WEB_APP_URL' with your actual Apps Script URL.");
+                productContainer.innerHTML = '<p class="text-center text-red-500 col-span-full">Configuration Error: Please update the PRODUCT_DATA_WEB_APP_URL in the code with your actual Google Apps Script URL for products.</p>';
+                return; // Stop execution if URL is not set
+            }
+
+            try {
+                const response = await fetch(PRODUCT_DATA_WEB_APP_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const productsData = await response.json();
+                fetchedProducts = productsData; // Store fetched products globally
+                console.log("[DEBUG] Fetched Products from Google Sheet:", fetchedProducts);
+
+                productContainer.innerHTML = '';
+
+                if (fetchedProducts.length === 0) {
+                    productContainer.innerHTML = '<p class="text-center text-gray-500 col-span-full">No menu items found. Please add items to your Google Sheet "Products" tab.</p>';
+                    return;
+                }
+
+                fetchedProducts.forEach(product => {
+                    let displayPrice = product.Price;
+                    let originalPriceHtml = '';
+                    let offerBadge = '';
+
+                    if (product['Is Offer'] && product['Discount Percentage'] > 0) {
+                        const discountAmount = product.Price * (product['Discount Percentage'] / 100);
+                        displayPrice = product.Price - discountAmount;
+                        originalPriceHtml = `<span class="text-gray-400 line-through text-sm mr-2">$${product.Price.toFixed(2)}</span>`;
+                        offerBadge = `<span class="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">SALE ${product['Discount Percentage']}% OFF</span>`;
+                    }
+
+                    if (product['Limited Time Offer']) {
+                        offerBadge += `<span class="absolute top-2 right-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full">Limited Time!</span>`;
+                    }
+
+                    const productCard = document.createElement('div');
+                    productCard.className = 'product-card bg-white rounded-lg shadow-md p-6 flex flex-col items-center text-center transform hover:scale-105 relative';
+                    productCard.innerHTML = `
+                        ${offerBadge}
+                        <img src="${product['Image URL']}" alt="${product.Name}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.onerror=null;this.src='https://placehold.co/400x300/FEE2E2/EF4444?text=No+Image';">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">${product.Name}</h3>
+                        <p class="text-gray-600 text-sm mb-3 flex-grow">${product.Description}</p>
+                        <div class="flex justify-between items-center w-full mt-auto">
+                            <div>
+                                ${originalPriceHtml}
+                                <span class="text-lg font-bold text-red-600">$${displayPrice.toFixed(2)}</span>
+                            </div>
+                            <button class="btn-primary add-to-cart-btn" data-product-id="${product.ID}">Add to Cart</button>
+                        </div>
+                    `;
+                    productContainer.appendChild(productCard);
+                });
+
+                // Add event listeners to all "Add to Cart" buttons
+                document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const productId = parseInt(event.target.dataset.productId);
+                        console.log("[DEBUG] Add to Cart clicked for Product ID:", productId);
+
+                        // Find the full product object from our fetchedProducts array
+                        const productToAdd = fetchedProducts.find(p => p.ID === productId);
+                        console.log("[DEBUG] Found product to add:", productToAdd);
+
+                        if (productToAdd) {
+                            addToCart(productToAdd); // Pass the full product object
+                        } else {
+                            console.error('Error: Product not found in fetched data for ID:', productId);
+                        }
+                    });
+                });
+
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                productContainer.innerHTML = '<p class="text-center text-red-500 col-span-full">Failed to load menu. Please check your Google Sheet setup and Apps Script deployment. Also ensure the URL in the code is correct.</p>';
+            }
+        }
+
+        // Function to add a product to the cart (now expects the full product object from sheet)
+        function addToCart(productDataFromSheet) {
+            console.log("[DEBUG] addToCart called with:", productDataFromSheet);
+
+            // Normalize the product data from the sheet for consistent cart storage
+            const normalizedProduct = {
+                id: productDataFromSheet.ID,
+                name: productDataFromSheet.Name,
+                description: productDataFromSheet.Description,
+                image: productDataFromSheet['Image URL'],
+                price: productDataFromSheet['Is Offer'] && productDataFromSheet['Discount Percentage'] > 0
+                       ? productDataFromSheet.Price * (1 - productDataFromSheet['Discount Percentage'] / 100)
+                       : productDataFromSheet.Price,
+                isOffer: productDataFromSheet['Is Offer'],
+                discountPercentage: productDataFromSheet['Discount Percentage'],
+                limitedTimeOffer: productDataFromSheet['Limited Time Offer']
+            };
+            console.log("[DEBUG] Normalized product for cart:", normalizedProduct);
+
+            const cartItem = cart.find(item => item.id === normalizedProduct.id);
+            if (cartItem) {
+                cartItem.quantity++;
+                console.log("[DEBUG] Increased quantity for item:", normalizedProduct.name, "New quantity:", cartItem.quantity);
+            } else {
+                cart.push({ ...normalizedProduct, quantity: 1 });
+                console.log("[DEBUG] Added new item to cart:", normalizedProduct.name);
+            }
+            console.log("[DEBUG] Current cart state:", cart);
+            updateCartDisplay();
+        }
+
+        // Function to remove an item from the cart
+        function removeFromCart(productId) {
+            console.log("[DEBUG] Removing item from cart with ID:", productId);
+            cart = cart.filter(item => item.id !== productId);
+            updateCartDisplay();
+            console.log("[DEBUG] Cart after removal:", cart);
+        }
+
+        // Function to change the quantity of an item in the cart
+        function changeQuantity(productId, change) {
+            console.log("[DEBUG] Changing quantity for item ID:", productId, "Change:", change);
+            const cartItem = cart.find(item => item.id === productId);
+            if (cartItem) {
+                cartItem.quantity += change;
+                if (cartItem.quantity <= 0) {
+                    removeFromCart(productId);
+                } else {
+                    updateCartDisplay();
+                }
+            }
+            console.log("[DEBUG] Cart after quantity change:", cart);
+        }
+
+        // Function to update the display of the shopping cart
+        function updateCartDisplay() {
+            console.log("[DEBUG] Updating cart display...");
+    cartItemsContainer.innerHTML = ''; // Clear current cart display
+    let total = 0;
+
+    if (cart.length === 0) {
+        emptyCartMessage.style.display = 'block'; // Show "Cart is empty" message
+        placeOrderButton.disabled = true; // Disable place order button
+        placeOrderButton.classList.add('opacity-50', 'cursor-not-allowed');
+        console.log("[DEBUG] Cart is empty.");
+    } else {
+        emptyCartMessage.style.display = 'none'; // Hide "Cart is empty" message
+        placeOrderButton.disabled = false; // Enable place order button
+        placeOrderButton.classList.remove('opacity-50', 'cursor-not-allowed');
+
+        cart.forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            total += itemTotal;
+
+            const cartItemDiv = document.createElement('div');
+            cartItemDiv.className = 'flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0';
+            cartItemDiv.innerHTML = `
+                <div class="flex-grow">
+                    <p class="font-medium text-gray-800">${item.name}</p>
+                    <p class="text-sm text-gray-500">$${item.price.toFixed(2)} each</p>
+                </div>
+                <div class="flex items-center">
+                    <button class="btn-secondary px-2 py-1 rounded-md text-sm quantity-btn" data-product-id="${item.id}" data-change="-1">-</button>
+                    <span class="mx-2 text-gray-700 font-semibold">${item.quantity}</span>
+                    <button class="btn-secondary px-2 py-1 rounded-md text-sm quantity-btn" data-product-id="${item.id}" data-change="1">+</button>
+                    <button class="ml-3 text-red-500 hover:text-red-700 text-sm remove-from-cart-btn" data-product-id="${item.id}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
+            `;
+            cartItemsContainer.appendChild(cartItemDiv);
+        });
+
+        // Add event listeners for quantity change buttons
+        document.querySelectorAll('.quantity-btn').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const productId = parseInt(event.currentTarget.dataset.productId); // Use currentTarget
+                const change = parseInt(event.currentTarget.dataset.change); // Use currentTarget
+                changeQuantity(productId, change);
+            });
+        });
+
+        // IMPORTANT FIX: Re-attaching event listeners for remove buttons after updating cart display
+        document.querySelectorAll('.remove-from-cart-btn').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const productId = parseInt(event.currentTarget.dataset.productId); // Use currentTarget here!
+                removeFromCart(productId);
+            });
+        });
+    }
+
+    cartTotalSpan.textContent = `$${total.toFixed(2)}`; // Update total price
+    cartItemCountSpan.textContent = cart.reduce((sum, item) => sum + item.quantity, 0); // Update cart item count
+    console.log("[DEBUG] Cart display updated. Total:", total.toFixed(2), "Items in cart:", cart.reduce((sum, item) => sum + item.quantity, 0));
+        }
+
+        // Event listener for the "Place Order" button
+        placeOrderButton.addEventListener('click', () => {
+            if (cart.length > 0) {
+                const selectedDeliveryOption = document.querySelector('input[name="deliveryOption"]:checked').value;
+                const orderDetails = {
+                    items: cart,
+                    total: parseFloat(cartTotalSpan.textContent.replace('$', '')),
+                    deliveryOption: selectedDeliveryOption,
+                    timestamp: new Date().toISOString()
+                };
+                console.log("[DEBUG] Placing order. Order details:", orderDetails);
+
+                // Check if the placeholder URL is still present for the order receiver
+                if (ORDER_RECEIVER_WEB_APP_URL.includes('YOUR_APPS_SCRIPT_WEB_APP_URL')) {
+                    console.error("Configuration Error: Please replace 'YOUR_APPS_SCRIPT_WEB_APP_URL' with your actual Apps Script URL for order receiving.");
+                    alert('Configuration Error: Cannot place order. Please update the ORDER_RECEIVER_WEB_APP_URL in the code with your actual Google Apps Script URL.');
+                    return; // Stop execution if URL is not set
+                }
+
+                fetch(ORDER_RECEIVER_WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(orderDetails)
+                })
+                .then(response => {
+                    console.log("[DEBUG] Order data sent to Google Sheets (hopefully!)");
+                })
+                .catch(error => {
+                    console.error('Error sending order to Google Sheets:', error);
+                    alert('There was an error placing your order. Please try again or contact us.');
+                });
+
+                orderConfirmationModal.style.display = 'flex';
+     // New JavaScript to handle WhatsApp link generation
+                const whatsappOrderLink = document.getElementById('whatsappOrderLink');
+                let whatsappMessage = `Hello, I'd like to place an order from Food Board Kitchen!\n\nOrder Details:\n`;
+                orderDetails.items.forEach(item => {
+                    whatsappMessage += `- ${item.name} x ${item.quantity} ($${item.price.toFixed(2)} each)\n`;
+                });
+                whatsappMessage += `\nTotal: $${orderDetails.total.toFixed(2)}\n`;
+                whatsappMessage += `Delivery Option: ${orderDetails.deliveryOption === 'delivery' ? 'Delivery' : 'Pickup'}\n`;
+                whatsappMessage += `\nLooking forward to my delicious food! 😊`;
+
+                // Encode the message for a URL
+                const encodedWhatsappMessage = encodeURIComponent(whatsappMessage);
+                // Create the WhatsApp link (replace 'YOUR_WHATSAPP_NUMBER_HERE' with your WhatsApp number, including country code, e.g., 919876543210)
+                // If you want to use the API directly (more advanced), the Apps Script would handle it.
+                // This link opens WhatsApp with the message pre-filled for the user to send.
+                whatsappOrderLink.href = `https://wa.me/916369238500?text=${encodedWhatsappMessage}`;
+
+                // New JavaScript to make sure QR code image and UPI ID are visible and updateable
+                // (Already set in HTML, but good to know you could update them here dynamically if needed)
+                // const upiQrCode = document.getElementById('upiQrCode');
+                // const displayUpiId = document.getElementById('displayUpiId');
+                // upiQrCode.src = 'YOUR_QR_CODE_IMAGE_URL_HERE'; // Just a reminder you can set it here too
+                // displayUpiId.textContent = 'YOUR_UPI_ID_HERE'; // Just a reminder you can set it here too
+                cart = [];
+                updateCartDisplay();
+            } else {
+                console.log("[DEBUG] Place Order clicked, but cart is empty.");
+            }
+        });
+
+        // Event listeners for the modal close buttons
+        closeModalButton.addEventListener('click', () => {
+            orderConfirmationModal.style.display = 'none';
+            console.log("[DEBUG] Modal closed by 'x' button.");
+        });
+
+        modalOkButton.addEventListener('click', () => {
+            orderConfirmationModal.style.display = 'none';
+            console.log("[DEBUG] Modal closed by 'OK' button.");
+        });
+
+        // Close modal if user clicks outside of it
+        window.addEventListener('click', (event) => {
+            if (event.target == orderConfirmationModal) {
+                orderConfirmationModal.style.display = 'none';
+                console.log("[DEBUG] Modal closed by clicking outside.");
+            }
+        });
+
+        // Initial setup when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("[DEBUG] Document loaded. Initializing display...");
+            displayProducts();
+            updateCartDisplay();
+        });
+    </script>
+</body>
+</html>
